@@ -4,7 +4,7 @@ export interface Employee {
   name: string;
   department: string | null;
   email: string | null;
-  status: string;
+  status: "Active" | "Inactive";
 }
 
 export interface ReviewPeriod {
@@ -12,7 +12,7 @@ export interface ReviewPeriod {
   name: string;
   start_date: string;
   end_date: string;
-  status: string;
+  status: "Open" | "Closed";
 }
 
 export interface ReviewCreate {

@@ -93,7 +93,7 @@ def create_review(review: ReviewCreate) -> dict[str, Any]:
         with connect() as connection:
             with connection.cursor() as cursor:
                 cursor.execute(
-                    "SELECT id FROM employees WHERE id = %s FOR UPDATE",
+                    "SELECT id FROM employees WHERE id = %s FOR SHARE",
                     (values["employee_id"],),
                 )
                 if cursor.fetchone() is None:

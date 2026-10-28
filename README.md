@@ -544,34 +544,37 @@ Typical packages for this stack include `fastapi`, `uvicorn`,
 declared by the actual project rather than assuming these are already
 configured.
 
-### 4. Create the Database
+### 4. Configure Environment Variables
 
-Connect to PostgreSQL and run:
-
-``` sql
-CREATE DATABASE employee_performance_db;
-```
-
-### 5. Configure Environment Variables
-
-Create a local `.env` file if the application is configured to load one.
-For example:
+Copy `.env.example` to `.env` and set your local PostgreSQL credentials:
 
 ``` dotenv
-DATABASE_HOST=localhost
-DATABASE_PORT=5432
-DATABASE_NAME=employee_performance_db
-DATABASE_USER=postgres
-DATABASE_PASSWORD=<your-local-password>
+DATABASE_URL=postgresql://postgres:<your-password>@localhost:5432/employee_performance_db
+FRONTEND_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
 ```
 
-Use the variable names expected by your application. Do not commit real
-passwords, tokens, or other secrets to version control.
+Do not commit real passwords, tokens, or other secrets to version control.
 
-### 6. Create the Tables
+### 5. Create the Database and Tables
 
-Execute `database/schema.sql` against `employee_performance_db` using
-`psql`, pgAdmin, or your project's migration tool.
+``` bash
+python scripts/init_db.py --seed
+```
+
+This creates the database named in `DATABASE_URL` if it does not exist,
+applies `database/schema.sql`, and (with `--seed`) loads sample employees,
+review periods, and reviews from `database/seed.sql`. Both SQL files are
+safe to re-run. Omit `--seed` for an empty database.
+
+### 6. Run the Tests
+
+``` bash
+python -m unittest -v
+```
+
+`tests/test_database_integration.py` runs against the database in
+`DATABASE_URL`, creating and removing its own records; it is skipped when
+the database is unreachable.
 
 ### 7. Start the FastAPI Application
 
@@ -586,6 +589,7 @@ Uvicorn is available on your `PATH`, `uvicorn main:app --reload` also works.
 
 ### 8. Open the API Documentation
 
+-   Health check: `http://localhost:8000/api/health`
 -   Swagger UI: `http://localhost:8000/docs`
 -   ReDoc: `http://localhost:8000/redoc`
 -   OpenAPI JSON: `http://localhost:8000/openapi.json`
@@ -686,20 +690,24 @@ employee-performance-review/
 │   ├── routers/
 │   │   ├── __init__.py
 │   │   ├── employees.py
+│   │   ├── health.py
 │   │   ├── review_periods.py
 │   │   └── reviews.py
-│   ├── schemas/
-│   │   └── __init__.py
 │   └── services/
 │       ├── __init__.py
 │       ├── employees.py
 │       ├── review_periods.py
 │       └── reviews.py
 ├── database/
-│   └── schema.sql
+│   ├── schema.sql
+│   └── seed.sql
+├── scripts/
+│   └── init_db.py
 ├── tests/
 │   ├── __init__.py
-│   └── test_api_contract.py
+│   ├── test_api_contract.py
+│   ├── test_database_integration.py
+│   └── test_error_handling.py
 ├── docs/
 │   ├── openapi.yaml
 │   └── demo/

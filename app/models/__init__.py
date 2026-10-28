@@ -1,6 +1,7 @@
 """API request and response models."""
 
 from datetime import date, datetime
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -13,7 +14,7 @@ class Employee(BaseModel):
     name: str
     department: str | None
     email: str | None
-    status: str
+    status: Literal["Active", "Inactive"]
 
 
 class ReviewPeriod(BaseModel):
@@ -23,7 +24,7 @@ class ReviewPeriod(BaseModel):
     name: str
     start_date: date
     end_date: date
-    status: str
+    status: Literal["Open", "Closed"]
 
 
 class ReviewCreate(BaseModel):
