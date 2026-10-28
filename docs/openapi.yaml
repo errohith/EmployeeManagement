@@ -1,0 +1,227 @@
+openapi: 3.1.0
+info:
+  title: Employee Performance Review Management System
+  version: 1.0.0
+servers:
+  - url: /
+paths:
+  /api/employees:
+    get:
+      summary: List employees
+      operationId: listEmployees
+      responses:
+        "200":
+          description: Employees
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Employee"
+  /api/review-periods:
+    get:
+      summary: List review periods
+      operationId: listReviewPeriods
+      responses:
+        "200":
+          description: Review periods
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReviewPeriod"
+  /api/reviews:
+    get:
+      summary: List performance reviews
+      operationId: listReviews
+      parameters:
+        - name: employee_id
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+        - name: period_id
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 100
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        "200":
+          description: Performance reviews
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReviewListItem"
+    post:
+      summary: Create a performance review
+      operationId: createReview
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReviewCreate"
+      responses:
+        "201":
+          description: Review created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReviewResponse"
+        "400":
+          description: Review period is not open
+        "404":
+          description: Employee or review period not found
+        "409":
+          description: Review already exists for the employee and period
+        "422":
+          description: Request validation failed
+  /api/reviews/{review_id}:
+    get:
+      summary: Get a performance review
+      operationId: getReview
+      parameters:
+        - name: review_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 2147483647
+      responses:
+        "200":
+          description: Performance review
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReviewListItem"
+        "404":
+          description: Review not found
+components:
+  schemas:
+    Employee:
+      type: object
+      required: [id, employee_id, name, department, email, status]
+      properties:
+        id:
+          type: integer
+        employee_id:
+          type: string
+        name:
+          type: string
+        department:
+          type: [string, "null"]
+        email:
+          type: [string, "null"]
+        status:
+          type: string
+    ReviewPeriod:
+      type: object
+      required: [id, name, start_date, end_date, status]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        status:
+          type: string
+    ReviewCreate:
+      type: object
+      additionalProperties: false
+      required:
+        - employee_id
+        - period_id
+        - quality_rating
+        - delivery_rating
+        - teamwork_rating
+        - comments
+      properties:
+        employee_id:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        period_id:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        quality_rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        delivery_rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        teamwork_rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        comments:
+          type: string
+          minLength: 1
+    ReviewResponse:
+      type: object
+      required:
+        - id
+        - employee_id
+        - period_id
+        - quality_rating
+        - delivery_rating
+        - teamwork_rating
+        - average_rating
+        - comments
+        - created_at
+      properties:
+        id:
+          type: integer
+        employee_id:
+          type: integer
+        period_id:
+          type: integer
+        quality_rating:
+          type: integer
+        delivery_rating:
+          type: integer
+        teamwork_rating:
+          type: integer
+        average_rating:
+          type: number
+        comments:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+    ReviewListItem:
+      allOf:
+        - $ref: "#/components/schemas/ReviewResponse"
+        - type: object
+          required: [employee_code, employee_name, period_name]
+          properties:
+            employee_code:
+              type: string
+            employee_name:
+              type: string
+            period_name:
+              type: string
